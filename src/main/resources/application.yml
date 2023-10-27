@@ -1,0 +1,7 @@
+server:
+  port: 30100
+
+spring:
+  application:
+    name: gpt-robot
+
