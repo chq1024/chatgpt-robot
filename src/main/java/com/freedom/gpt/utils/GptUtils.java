@@ -3,6 +3,7 @@ package com.freedom.gpt.utils;
 import com.freedom.gpt.entity.GptMessage;
 import com.freedom.gpt.entity.GptRequest;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.HttpEntity;
@@ -19,14 +20,21 @@ import java.util.UUID;
 @Component
 public class GptUtils implements ApplicationContextAware {
 
-    private ApplicationContext context;
+    private static ApplicationContext context;
 
     public static GptUtils INSTANCE;
 
-    public static GptUtils getINSTANCE() {
-        if (INSTANCE == null) {
+    @Value("${gpt.key}")
+    private String key;
 
+    @Value("${gpt.model}")
+    private String md;
+
+    public static GptUtils INSTANCE() {
+        if (INSTANCE == null) {
+            INSTANCE = context.getBean(GptUtils.class);
         }
+        return INSTANCE;
     }
 
     public String genderContentKey() {
@@ -41,12 +49,12 @@ public class GptUtils implements ApplicationContextAware {
     }
 
     private GptRequest requestBody(List<GptMessage> messages) {
-        return GptRequest.builder().model("gpt-3.5-turbo").messages(messages).build();
+        return GptRequest.builder().model(md).messages(messages).build();
     }
 
     private HttpHeaders requestHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("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");
+        headers.setBearerAuth(key);
         return headers;
     }
 
@@ -58,6 +66,6 @@ public class GptUtils implements ApplicationContextAware {
 
     @Override
     public void setApplicationContext(ApplicationContext context) throws BeansException {
-        this.context = context;
+        GptUtils.context = context;
     }
 }

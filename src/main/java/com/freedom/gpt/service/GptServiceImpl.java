@@ -43,8 +43,8 @@ public class GptServiceImpl implements GptService {
             gptMessages =  messageMap.get(content);
             gptMessages.add(GptMessage.builder().role("user").content(content).build());
         } else {
-            gptMessages = GptUtils.INSTANCE.newContent();
-            rck = GptUtils.INSTANCE.genderContentKey();
+            gptMessages = GptUtils.INSTANCE().newContent();
+            rck = GptUtils.INSTANCE().genderContentKey();
             gptMessages.add(GptMessage.builder().role("user").content(content).build());
             messageMap.put(rck,gptMessages);
         }
@@ -52,6 +52,7 @@ public class GptServiceImpl implements GptService {
 //            Map map = restTemplate.postForObject(gptUri, GptUtils.INSTANCE.httpEntity(gptMessages), Map.class);
             GptResponse body = new GptResponse();
 //            GptResponse body = response.getBody();
+            GptUtils.INSTANCE().genderContentKey();
             String json = "{\"id\":\"chatcmpl-8FKZ4W6Tm0yU1mGAbovT6EJSbs8oK\",\"object\":\"chat.completion\",\"created\":1698664662,\"model\":\"gpt-3.5-turbo-0613\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"I am the GPT-3 model developed by OpenAI. I'm a language-based model that can generate responses to prompts, answer questions, and perform various language-related tasks.\"},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":20,\"completion_tokens\":36,\"total_tokens\":56}}";
             GptResponse gptResponse = new ObjectMapper().readValue(json, GptResponse.class);
             GptResponse.GptChoice gptChoice = gptResponse.getChoices().get(0);
