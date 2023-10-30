@@ -5,3 +5,12 @@ spring:
   application:
     name: gpt-robot
 
+
+gpt:
+  key: ${gpt_key}
+  uri: ${gpt_uri}
+  model: ${gpt_model:gpt-3.5-turbo}
+
+proxy:
+  host: ${proxy_host}
+  port: ${porxy_port}

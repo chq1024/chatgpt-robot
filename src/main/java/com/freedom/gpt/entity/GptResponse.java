@@ -4,7 +4,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author bk
@@ -13,6 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 public class GptResponse implements Serializable{
 
+    private Map<String,Object> error = new HashMap<>();
     private List<GptChoice> choices;
     private Long created;
     private String id;

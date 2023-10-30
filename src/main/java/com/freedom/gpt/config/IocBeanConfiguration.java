@@ -1,9 +1,10 @@
 package com.freedom.gpt.config;
 
+import com.freedom.gpt.properties.ProxyProperties;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -19,13 +20,6 @@ import java.net.Proxy;
 @Configuration
 public class IocBeanConfiguration {
 
-    @Value("${porxy_host:127.0.0.1}")
-    private String proxyHostname;
-
-    @Value("${proxy_port:7891}")
-    private int proxyPort;
-
-
     @Bean("okHttpTemplate")
     @Autowired
     @DependsOn("okHttp3Factory")
@@ -35,8 +29,9 @@ public class IocBeanConfiguration {
     }
 
     @Bean(name = "okHttpClint")
-    public OkHttpClient okHttpClient() {
-        Proxy proxy = new Proxy(Proxy.Type.SOCKS,new InetSocketAddress(proxyHostname,proxyPort));
+    @ConditionalOnClass(value = {ProxyProperties.class})
+    public OkHttpClient okHttpClient(ProxyProperties properties) {
+        Proxy proxy = new Proxy(Proxy.Type.HTTP,new InetSocketAddress(properties.getHost(),properties.getPort()));
         return new OkHttpClient().newBuilder()
                 .proxy(proxy)
                 .build();
