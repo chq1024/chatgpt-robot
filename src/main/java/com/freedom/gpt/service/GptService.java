@@ -1,8 +1,6 @@
 package com.freedom.gpt.service;
 
-import com.freedom.gpt.entity.GptMessage;
-
-import java.util.List;
+import com.freedom.gpt.openapi.ChatResponse;
 
 /**
  * @author bk
@@ -15,5 +13,11 @@ public interface GptService {
      * @param content 输入内容
      * @return
      */
-    List<GptMessage> connect(String ck, String content);
+    ChatResponse connect(String ck, String content);
+
+    /**
+     * 关闭会话
+     * @param ck
+     */
+    void close(String ck);
 }

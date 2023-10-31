@@ -1,14 +1,11 @@
 package com.freedom.gpt.openapi;
 
-import com.freedom.gpt.entity.GptMessage;
 import com.freedom.gpt.service.GptService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import javax.validation.constraints.NotEmpty;
 
 /**
  * @author bk
@@ -21,7 +18,12 @@ public class GptOpenController {
     private GptService gptService;
 
     @PostMapping("/chat")
-    public List<GptMessage> chat(@RequestBody ChatRequest req) {
+    public ChatResponse chat(@RequestBody ChatRequest req) {
         return gptService.connect(req.getCk(), req.getContent());
+    }
+
+    @GetMapping("/chat/close")
+    public void chatClose(@RequestParam("ck") @Validated @NotEmpty String ck) {
+        gptService.close(ck);
     }
 }

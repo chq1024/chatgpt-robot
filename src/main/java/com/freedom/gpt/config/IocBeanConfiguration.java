@@ -1,5 +1,7 @@
 package com.freedom.gpt.config;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.freedom.gpt.properties.ProxyProperties;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.text.SimpleDateFormat;
 
 /**
  * @author bk
@@ -40,8 +43,17 @@ public class IocBeanConfiguration {
     @Bean(name = "okHttp3Factory")
     public OkHttp3ClientHttpRequestFactory requestFactory(@Qualifier("okHttpClint") OkHttpClient okHttpClient) {
         OkHttp3ClientHttpRequestFactory factory = new OkHttp3ClientHttpRequestFactory(okHttpClient);
-        factory.setConnectTimeout(10000);
+        factory.setConnectTimeout(20000);
         return factory;
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
+        objectMapper.setDateFormat(dateFormat);
+        return objectMapper;
     }
 
 }
