@@ -1,9 +1,13 @@
 server:
   port: 30100
-
+  http2:
+    enabled: true
 spring:
   application:
     name: gpt-robot
+  mvc:
+    async:
+      request-timeout: -1
 
 
 gpt:
