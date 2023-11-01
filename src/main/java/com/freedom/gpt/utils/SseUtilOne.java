@@ -17,7 +17,8 @@ public class SseUtilOne {
 
     public static SseEmitter INSTANCE() {
         if (emitter == null) {
-            return create();
+            emitter = create();
+            return emitter;
         }
         return emitter;
     }
