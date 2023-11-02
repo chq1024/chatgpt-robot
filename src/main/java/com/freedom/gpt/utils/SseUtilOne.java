@@ -13,7 +13,7 @@ public class SseUtilOne {
 
     private static SseEmitter emitter;
 
-    private static final long DEFAULT_TIME_OUT = 20000L;
+    private static final long DEFAULT_TIME_OUT = 10000L;
 
     public static SseEmitter INSTANCE() {
         if (emitter == null) {
@@ -28,19 +28,25 @@ public class SseUtilOne {
     }
 
     public static SseEmitter create(Long timeout) {
-        SseEmitter sseEmitter = new SseEmitter(timeout);
-        sseEmitter.onCompletion(()->{
+        emitter = new SseEmitter(timeout);;
+        emitter.onCompletion(()->{
             log.warn("本次结束");
         });
-        sseEmitter.onTimeout(()->{
+        emitter.onTimeout(()->{
             log.warn("超时");
-            sseEmitter.complete();
+            if (emitter != null) {
+                emitter.complete();
+                emitter = null;
+            }
         });
-        sseEmitter.onError((e)->{
+        emitter.onError((e)->{
             log.error("SSE错误:{}",e.getMessage());
-            sseEmitter.complete();
+            if (emitter != null) {
+                emitter.complete();
+                emitter = null;
+            }
         });
-        return  sseEmitter;
+        return  emitter;
     }
 
 

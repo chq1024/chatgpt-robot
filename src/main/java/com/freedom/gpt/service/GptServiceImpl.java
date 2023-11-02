@@ -81,6 +81,7 @@ public class GptServiceImpl implements GptService {
                 gptResponse.setChoices(choices);
                 return gptResponse;
             },taskExecutor);
+            // k: 上述GptResponse e:可能产生的异常
             hashMapCompletableFuture.whenComplete((k,e)->{
                 try {
 //                    SseEmitter emitter = SseUtil.get(ck);
