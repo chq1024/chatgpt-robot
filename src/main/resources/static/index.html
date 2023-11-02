@@ -6,7 +6,11 @@
     <title>Robot-Beikei</title>
     <script>
         function useChat(el) {
-            console.log(el.textContent)
+            currMessage = messages.get(el.textContent)
+            currChatCk = el.textContent
+            let fragme = beautifulMessage(currMessage)
+            clearMessageElement()
+            messagesElement.appendChild(fragme)
         }
     </script>
 </head>
@@ -268,7 +272,6 @@
         flex-direction: column;
         color: #ffd1d1;
         align-items: flex-start;
-        height: 100%;
     }
     .curr-chats .chat-item {
         width: 100%;

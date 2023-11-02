@@ -49,7 +49,7 @@ public class GptServiceImpl implements GptService {
     public ChatResponse connect(String ck,String content) {
         boolean exit = messageMap.containsKey(ck);
         List<GptMessage> gptMessages;
-        String rck = ck;
+        String rck = new String(ck);
         if (StringUtils.hasText(rck) && exit) {
             gptMessages =  messageMap.get(rck);
             gptMessages.add(GptMessage.builder().role("user").content(content).build());
@@ -89,17 +89,14 @@ public class GptServiceImpl implements GptService {
                 return gptResponse;
             },taskExecutor);
             // k: 上述GptResponse e:可能产生的异常
-            hashMapCompletableFuture.whenComplete((k,e)->{
+            String finalRck = rck;
+            hashMapCompletableFuture.whenComplete((k, e)->{
                 try {
-//                    SseEmitter emitter = SseUtil.get(ck);
-//                    if (emitter == null) {
-//                      emitter = SseUtil.create(ck);
-//                    }
                     SseEmitter emitter = SseUtilOne.INSTANCE();
                     GptMessage newMessage = k.getChoices().get(0).getMessage();
                     // 将newMessage加入本次历史会话
                     gptMessages.add(newMessage);
-                    messageMap.put(ck,gptMessages);
+                    messageMap.put(finalRck,gptMessages);
                     SseEmitter.SseEventBuilder message = SseEmitter.event().id(UUID.randomUUID().toString()).data(JsonUtil.writeValueAsString(newMessage)).name("message").reconnectTime(1000L);
                     emitter.send(message);
                 } catch (Exception ex) {
