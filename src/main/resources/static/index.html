@@ -43,15 +43,20 @@
     })
 
     async function send(isNew) {
+        // 空值无法发送
         let sendMessage = icInputElement.value;
         if (!isNew && sendMessage.trim() === "") {
             return
         }
+        // 正常请求
         const requestData = {
             ck: currChatCk,
             content: sendMessage
         };
-        // Send the HTTP/2 POST request using fetch
+        const userCurrMsg = [{
+            role: 'user',
+            content: sendMessage
+        }]
         const response = await fetch('/api/chat', {
             method: 'POST',
             body: JSON.stringify(requestData),
@@ -61,13 +66,23 @@
             },
             referrerPolicy: 'no-referrer',
         });
-        console.log(response)
         if (response.ok) {
             const text = await response.text();
             const item = JSON.parse(text);
             currChatCk = item.ck
+            const forceFix = isNeedForceFix(currMessage,item.content)
+            // 强制修复,保持前后数据一致性(强制修复会出现页面抖动)
+            if (forceFix || isNew) {
+                const fragment = beautifulMessage(item.content);
+                while (messagesElement.firstChild) {
+                    messagesElement.removeChild(messagesElement.firstChild);
+                }
+                messagesElement.appendChild(fragment)
+            } else {
+                const fragment = beautifulMessage(userCurrMsg);
+                messagesElement.appendChild(fragment)
+            }
             currMessage = item.content
-            messagesElement.innerHTML = beautifulMessage(currMessage);
             icInputElement.value = ''
         } else {
             console.error('Error:', response.status);
@@ -77,21 +92,25 @@
     // 监听sse api
     const evenListen = new EventSource("/api/sse");
     evenListen.addEventListener("message", (event) => {
-        console.log("event:", event)
         const msgArr = []
-        msgArr.push(JSON.parse(event.data))
-        messagesElement.innerHTML += beautifulMessage(msgArr);
+        const sseMsg = JSON.parse(event.data);
+        msgArr.push(sseMsg)
+        let fragment = beautifulMessage(msgArr);
+        messagesElement.appendChild(fragment)
+        currMessage.push(sseMsg)
     })
     evenListen.addEventListener('error', (event) => {
         console.error('连接关闭：', event);
     });
 
     function autoResizeInput(input) {
-        input.style.width = input.value.length + "ch"; // 使用输入内容的长度来设置宽度
+        // 使用输入内容的长度来设置宽度
+        input.style.width = input.value.length + "ch";
     }
 
     function beautifulMessage(resp) {
-        let transformMessage = ""
+        // let transformMessage = []
+        const fragment = document.createDocumentFragment();
         for (let i = 0; i < resp.length; i++) {
             let position = 'message-item-float-right'
             let svg = 'robot.svg'
@@ -101,9 +120,21 @@
                 position = 'message-item-float-left'
                 svg = 'question-person.svg'
             }
-            transformMessage += `<div class=\"message-item ${position}\"><embed src=\"/svg/${svg}\" type=\"image/svg+xml\"/><span>${content}</span></div>`
+            const divElement = document.createElement('div');
+            divElement.classList.add('message-item')
+            divElement.classList.add(position)
+            // divElement.innerHTML = `<div class=\"message-item ${position}\"><embed src=\"/svg/${svg}\" type=\"image/svg+xml\"/><span>${content}</span></div>`
+            divElement.innerHTML = `<embed src=\"/svg/${svg}\" type=\"image/svg+xml\"/><span>${content}</span>`
+            fragment.appendChild(divElement)
         }
-        return transformMessage
+        return fragment
+    }
+
+    function isNeedForceFix(curr,resp) {
+        if (curr.length + 1 === resp.length) {
+            return false
+        }
+        return true
     }
 </script>
 <style>
