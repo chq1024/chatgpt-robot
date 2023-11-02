@@ -4,11 +4,17 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Robot-Beikei</title>
+    <script>
+        function useChat(el) {
+            console.log(el.textContent)
+        }
+    </script>
 </head>
 <body class="body-clazz">
 <div class="main-content">
     <div class="content-history">
         <button class="content-newChat-btn" id="newChatBtn">new chat</button>
+        <div class="curr-chats" id="chats"></div>
     </div>
     <div class="content-message" id="contentMsg">
         <div class="content-header">
@@ -26,11 +32,41 @@
 <script type="application/javascript">
     let currChatCk = "";
     let currMessage = []
+    let messages = new Map()
 
     const newChatBtnElement = document.getElementById('newChatBtn');
     const icInputElement = document.getElementById("ic");
     const messagesElement = document.getElementById("messages")
     const contentMsgElement = document.getElementById("contentMsg")
+    const chatsElement = document.getElementById("chats")
+
+    // 渲染左边当前所有会话列表
+    window.onload = async function () {
+        const response = await fetch('/api/chat', {
+            method: 'GET',
+            headers: {
+                'Accept': '*/*',
+                'Content-Type': 'application/json',
+            },
+            referrerPolicy: 'no-referrer',
+        });
+        if (response.ok) {
+            const text = await response.text();
+            const item = JSON.parse(text);
+            const fragment = document.createDocumentFragment();
+            for (let i = 0; i < item.length; i++) {
+                let msgItem = item[i]
+                let chatItem = document.createElement('div')
+                chatItem.classList.add('chat-item')
+                chatItem.innerHTML = `<button class=\"chat-item-btn\" onclick=\"useChat(this)\">${msgItem.ck}</button></span>`
+                fragment.appendChild(chatItem)
+                messages.set(msgItem.ck,msgItem.content)
+            }
+            chatsElement.appendChild(fragment)
+        } else {
+            console.error('Error:', response.status);
+        }
+    }
 
     //-------------------------------按钮事件------------------------------------------
     newChatBtnElement.addEventListener('click', () => {
@@ -142,6 +178,7 @@
         }
     }
 
+
     function isNeedForceFix(curr,resp) {
         if (curr.length + 1 === resp.length) {
             return false
@@ -225,6 +262,26 @@
     }
     .message-item-float-right {
         justify-content: flex-start;
+    }
+    .curr-chats {
+        display: flex;
+        flex-direction: column;
+        color: #ffd1d1;
+        align-items: flex-start;
+        height: 100%;
+    }
+    .curr-chats .chat-item {
+        width: 100%;
+        min-height: 50px;
+        display: flex;
+        justify-content: center;
+    }
+    .curr-chats .chat-item-btn {
+        width: 100%;
+        overflow-x: hidden;
+        color: #d19d9d;
+        border: 0;
+        background-color: #414145FF;
     }
 </style>
 </body>

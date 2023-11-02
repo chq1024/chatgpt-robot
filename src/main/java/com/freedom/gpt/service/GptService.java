@@ -2,6 +2,8 @@ package com.freedom.gpt.service;
 
 import com.freedom.gpt.openapi.ChatResponse;
 
+import java.util.List;
+
 /**
  * @author bk
  */
@@ -20,4 +22,10 @@ public interface GptService {
      * @param ck
      */
     void close(String ck);
+
+    /**
+     * 获取当前所有会话
+     * @return
+     */
+    List<ChatResponse> chats();
 }

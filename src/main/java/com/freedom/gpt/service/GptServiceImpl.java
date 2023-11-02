@@ -18,9 +18,11 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * @author bk
@@ -133,5 +135,10 @@ public class GptServiceImpl implements GptService {
     @Override
     public void close(String ck) {
         messageMap.remove(ck);
+    }
+
+    @Override
+    public List<ChatResponse> chats() {
+        return messageMap.entrySet().stream().map(r-> ChatResponse.builder().ck(r.getKey()).content(r.getValue()).build()).collect(Collectors.toList());
     }
 }

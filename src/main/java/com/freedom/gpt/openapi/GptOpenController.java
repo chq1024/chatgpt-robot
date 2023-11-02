@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
 /**
  * @author bk
@@ -32,7 +33,10 @@ public class GptOpenController {
         gptService.close(ck);
     }
 
-
+    @GetMapping("/chat")
+    public List<ChatResponse> chat() {
+        return gptService.chats();
+    }
 
     @GetMapping("/sse")
     public SseEmitter handleSse() {
