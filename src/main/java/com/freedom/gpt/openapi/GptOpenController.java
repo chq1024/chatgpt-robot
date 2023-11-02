@@ -1,7 +1,6 @@
 package com.freedom.gpt.openapi;
 
 import com.freedom.gpt.service.GptService;
-import com.freedom.gpt.utils.SseUtil;
 import com.freedom.gpt.utils.SseUtilOne;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +31,7 @@ public class GptOpenController {
     public void chatClose(@RequestParam("ck") @Validated @NotEmpty String ck) {
         gptService.close(ck);
     }
+
 
 
     @GetMapping("/sse")

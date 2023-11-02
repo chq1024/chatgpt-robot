@@ -3,7 +3,7 @@ package com.freedom.gpt.service;
 import com.freedom.gpt.entity.GptMessage;
 import com.freedom.gpt.entity.GptResponse;
 import com.freedom.gpt.openapi.ChatResponse;
-import com.freedom.gpt.utils.GptUtils;
+import com.freedom.gpt.utils.GptUtil;
 import com.freedom.gpt.utils.JsonUtil;
 import com.freedom.gpt.utils.SseUtil;
 import com.freedom.gpt.utils.SseUtilOne;
@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -47,15 +48,19 @@ public class GptServiceImpl implements GptService {
         boolean exit = messageMap.containsKey(ck);
         List<GptMessage> gptMessages;
         String rck = ck;
-        if (exit) {
+        if (StringUtils.hasText(rck) && exit) {
             gptMessages =  messageMap.get(rck);
             gptMessages.add(GptMessage.builder().role("user").content(content).build());
         } else {
             // 新建会话返回初始原文和新CK
-            gptMessages = GptUtils.INSTANCE().newContent();
-            rck = GptUtils.INSTANCE().genderContentKey();
+            gptMessages = GptUtil.INSTANCE().newContent();
+            rck = GptUtil.INSTANCE().genderContentKey();
+            if (!StringUtils.hasText(content)) {
+                messageMap.put(rck,gptMessages);
+                return ChatResponse.builder().ck(rck).content(gptMessages).build();
+            }
+            gptMessages.add(GptMessage.builder().role("user").content(content).build());
             messageMap.put(rck,gptMessages);
-            return ChatResponse.builder().ck(rck).content(gptMessages).build();
         }
         try {
             System.out.println(System.currentTimeMillis());
@@ -103,7 +108,7 @@ public class GptServiceImpl implements GptService {
 //            HashMap hashMap = hashMapCompletableFuture2.get();
             System.out.println(System.currentTimeMillis());
 //            Map map = new HashMap();
-//            Map map = restTemplate.postForObject(gptUri, GptUtils.INSTANCE.httpEntity(gptMessages), Map.class);
+//            Map map = restTemplate.postForObject(gptUri, GptUtil.INSTANCE.httpEntity(gptMessages), Map.class);
 //            if (map.containsKey("error")) {
 //                throw new RuntimeException(JsonUtil.writeValueAsString(map.get("error")));
 //            }

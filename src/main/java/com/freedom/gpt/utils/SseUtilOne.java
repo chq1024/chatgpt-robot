@@ -6,6 +6,10 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * 全局唯一一个emitter分发
+ *
+ * 后期根据需要改造成每位用户单独的SSE，根据token区分，降低消息分发压力
+ * 见SseUtil
  * @author bk
  */
 @Slf4j

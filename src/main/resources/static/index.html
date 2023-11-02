@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Robot-Beikei</title>
 </head>
 <body class="body-clazz">
@@ -9,7 +10,7 @@
     <div class="content-history">
         <button class="content-newChat-btn" id="newChatBtn">new chat</button>
     </div>
-    <div class="content-message">
+    <div class="content-message" id="contentMsg">
         <div class="content-header">
             <h1>CHAT</h1>
         </div>
@@ -29,10 +30,13 @@
     const newChatBtnElement = document.getElementById('newChatBtn');
     const icInputElement = document.getElementById("ic");
     const messagesElement = document.getElementById("messages")
+    const contentMsgElement = document.getElementById("contentMsg")
 
+    //-------------------------------按钮事件------------------------------------------
     newChatBtnElement.addEventListener('click', () => {
         currChatCk = ""
         currMessage = []
+        clearMessageElement()
         send(true)
     });
 
@@ -41,7 +45,25 @@
             send(false)
         }
     })
+    //-------------------------------按钮事件------------------------------------------
 
+    //-------------------------------监听sse api----------------------------------------
+    const evenListen = new EventSource("/api/sse");
+    evenListen.addEventListener("message", (event) => {
+        const msgArr = []
+        const sseMsg = JSON.parse(event.data);
+        msgArr.push(sseMsg)
+        let fragment = beautifulMessage(msgArr);
+        messagesElement.appendChild(fragment)
+        currMessage.push(sseMsg)
+        contentMsgElement.scrollTop = contentMsgElement.scrollHeight
+    })
+    evenListen.addEventListener('error', (event) => {
+        console.error('连接关闭：', event);
+    });
+    //-------------------------------监听sse api----------------------------------------
+
+    //-------------------------------内部方法--------------------------------------------
     async function send(isNew) {
         // 空值无法发送
         let sendMessage = icInputElement.value;
@@ -74,9 +96,7 @@
             // 强制修复,保持前后数据一致性(强制修复会出现页面抖动)
             if (forceFix || isNew) {
                 const fragment = beautifulMessage(item.content);
-                while (messagesElement.firstChild) {
-                    messagesElement.removeChild(messagesElement.firstChild);
-                }
+                await clearMessageElement()
                 messagesElement.appendChild(fragment)
             } else {
                 const fragment = beautifulMessage(userCurrMsg);
@@ -84,24 +104,11 @@
             }
             currMessage = item.content
             icInputElement.value = ''
+            contentMsgElement.scrollTop = contentMsgElement.scrollHeight
         } else {
             console.error('Error:', response.status);
         }
     }
-
-    // 监听sse api
-    const evenListen = new EventSource("/api/sse");
-    evenListen.addEventListener("message", (event) => {
-        const msgArr = []
-        const sseMsg = JSON.parse(event.data);
-        msgArr.push(sseMsg)
-        let fragment = beautifulMessage(msgArr);
-        messagesElement.appendChild(fragment)
-        currMessage.push(sseMsg)
-    })
-    evenListen.addEventListener('error', (event) => {
-        console.error('连接关闭：', event);
-    });
 
     function autoResizeInput(input) {
         // 使用输入内容的长度来设置宽度
@@ -109,7 +116,6 @@
     }
 
     function beautifulMessage(resp) {
-        // let transformMessage = []
         const fragment = document.createDocumentFragment();
         for (let i = 0; i < resp.length; i++) {
             let position = 'message-item-float-right'
@@ -130,12 +136,19 @@
         return fragment
     }
 
+    function clearMessageElement() {
+        while (messagesElement.firstChild) {
+            messagesElement.removeChild(messagesElement.firstChild);
+        }
+    }
+
     function isNeedForceFix(curr,resp) {
         if (curr.length + 1 === resp.length) {
             return false
         }
         return true
     }
+    //-------------------------------内部方法--------------------------------------------
 </script>
 <style>
     * {
@@ -164,7 +177,9 @@
     }
     .main-content .content-message {
         width: 85%;
+        max-height: 100vh;
         display: flex;
+        overflow-y: auto;
         flex-direction: column;
     }
     .main-content .content-message .qa-content {

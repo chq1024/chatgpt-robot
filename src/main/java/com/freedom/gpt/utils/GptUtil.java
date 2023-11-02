@@ -18,11 +18,11 @@ import java.util.UUID;
  * @author bk
  */
 @Component
-public class GptUtils implements ApplicationContextAware {
+public class GptUtil implements ApplicationContextAware {
 
     private static ApplicationContext context;
 
-    public static GptUtils INSTANCE;
+    public static GptUtil INSTANCE;
 
     @Value("${gpt.key}")
     private String key;
@@ -30,9 +30,9 @@ public class GptUtils implements ApplicationContextAware {
     @Value("${gpt.model}")
     private String md;
 
-    public static GptUtils INSTANCE() {
+    public static GptUtil INSTANCE() {
         if (INSTANCE == null) {
-            INSTANCE = context.getBean(GptUtils.class);
+            INSTANCE = context.getBean(GptUtil.class);
         }
         return INSTANCE;
     }
@@ -67,6 +67,6 @@ public class GptUtils implements ApplicationContextAware {
 
     @Override
     public void setApplicationContext(ApplicationContext context) throws BeansException {
-        GptUtils.context = context;
+        GptUtil.context = context;
     }
 }
