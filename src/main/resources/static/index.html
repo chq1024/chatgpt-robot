@@ -154,7 +154,6 @@
             const text = await response.text();
             const item = JSON.parse(text);
             currChatCk = item.ck
-            messages.set(currChatCk,item.content)
             // 列表添加本次对话
             if (isNew) {
                 const fragment = document.createDocumentFragment();
@@ -177,6 +176,7 @@
             }
             currMessage = item.content
             icInputElement.value = ''
+            messages.set(currChatCk,item.content)
             goBottom()
         } else {
             console.error('Error:', response.status);
