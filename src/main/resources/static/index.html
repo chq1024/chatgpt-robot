@@ -80,7 +80,8 @@
                 let msgItem = item[i]
                 let chatItem = document.createElement('div')
                 chatItem.classList.add('chat-item')
-                chatItem.innerHTML = `<button class=\"chat-item-btn\" onclick=\"useChat(this)\" onmouseover=\"chatBtnMouseOver(this)\" onmouseout=\"chatBtnMouseOut(this)\">${msgItem.ck}</button><embed src=\"/svg/delete.svg\" class=\"chat-item-delete-btn\" type=\"image/svg+xml\"/></span>`
+                chatItem.setAttribute("id",msgItem.ck)
+                chatItem.innerHTML = `<button class=\"chat-item-btn\" onclick=\"useChat(this)\" onmouseover=\"chatBtnMouseOver(this)\" onmouseout=\"chatBtnMouseOut(this)\">${msgItem.ck}</button><div class=\"chat-item-delete-btn\" onclick=\"deleteChatItem('${msgItem.ck}')\"><embed src=\"/svg/delete.svg\" class=\"chat-item-delete-embed\" type=\"image/svg+xml\"/></div>`
                 fragment.appendChild(chatItem)
                 messages.set(msgItem.ck,msgItem.content)
             }
@@ -108,12 +109,15 @@
     //-------------------------------监听sse api----------------------------------------
     const evenListen = new EventSource("/api/sse");
     evenListen.addEventListener("message", (event) => {
-        const msgArr = []
         const sseMsg = JSON.parse(event.data);
-        msgArr.push(sseMsg)
-        let fragment = beautifulMessage(msgArr);
-        messagesElement.appendChild(fragment)
-        currMessage.push(sseMsg)
+        if (sseMsg.ck === currChatCk) {
+            const msgArr = []
+            msgArr.push(sseMsg)
+            let fragment = beautifulMessage(msgArr);
+            messagesElement.appendChild(fragment)
+            currMessage.push(sseMsg)
+        }
+        messages.get(sseMsg.ck).push({"role":sseMsg.role,"content":sseMsg.content})
         goBottom()
     })
     evenListen.addEventListener('error', (event) => {
@@ -150,6 +154,17 @@
             const text = await response.text();
             const item = JSON.parse(text);
             currChatCk = item.ck
+            messages.set(currChatCk,item.content)
+            // 列表添加本次对话
+            if (isNew) {
+                const fragment = document.createDocumentFragment();
+                let chatItem = document.createElement('div')
+                chatItem.classList.add('chat-item')
+                chatItem.setAttribute("id",item.ck)
+                chatItem.innerHTML = `<button class=\"chat-item-btn\" onclick=\"useChat(this)\" onmouseover=\"chatBtnMouseOver(this)\" onmouseout=\"chatBtnMouseOut(this)\">${item.ck}</button><div class=\"chat-item-delete-btn\" onclick=\"deleteChatItem('${item.ck}')\"><embed src=\"/svg/delete.svg\" class=\"chat-item-delete-embed\" type=\"image/svg+xml\"/></div>`
+                fragment.appendChild(chatItem)
+                chatsElement.appendChild(fragment)
+            }
             const forceFix = isNeedForceFix(currMessage,item.content)
             // 强制修复,保持前后数据一致性(强制修复会出现页面抖动)
             if (forceFix || isNew) {
@@ -220,6 +235,27 @@
 
     function goBottom() {
         window.scrollTo(0, document.documentElement.scrollHeight-document.documentElement.clientHeight);
+    }
+    async function deleteChatItem(ck) {
+        const response = await fetch('/api/chat?ck=' + ck, {
+            method: 'DELETE',
+            headers: {
+                'Accept': '*/*',
+                'Content-Type': 'application/json',
+            },
+            referrerPolicy: 'no-referrer',
+        });
+        console.log(response)
+        if (response.ok) {
+            const text = await response.text();
+            if (text === "succ") {
+                messages.delete(ck)
+                let element = document.getElementById(ck);
+                element.remove()
+            }
+        } else {
+            console.error('Error:', response.status);
+        }
     }
     //-------------------------------内部方法--------------------------------------------
 </script>
@@ -346,6 +382,8 @@
         border: 0;
     }
     .curr-chats .chat-item-delete-btn {
+        display: flex;
+        align-items: center;
         width: 16px;
     }
     .chat-item .btn-mouse-over {
@@ -379,6 +417,10 @@
     @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
+    }
+    /*阻止子元素点击事件*/
+    .chat-item-delete-embed {
+        pointer-events: none;
     }
 </style>
 </body>

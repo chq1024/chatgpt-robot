@@ -2,6 +2,7 @@ package com.freedom.gpt.service;
 
 import com.freedom.gpt.entity.GptMessage;
 import com.freedom.gpt.entity.GptResponse;
+import com.freedom.gpt.entity.SseGptMessage;
 import com.freedom.gpt.openapi.ChatResponse;
 import com.freedom.gpt.utils.GptUtil;
 import com.freedom.gpt.utils.JsonUtil;
@@ -95,9 +96,10 @@ public class GptServiceImpl implements GptService {
                     SseEmitter emitter = SseUtilOne.INSTANCE();
                     GptMessage newMessage = k.getChoices().get(0).getMessage();
                     // 将newMessage加入本次历史会话
+                    SseGptMessage sseGptMessage = SseGptMessage.builder().ck(finalRck).role(newMessage.getRole()).content(newMessage.getContent()).build();
                     gptMessages.add(newMessage);
                     messageMap.put(finalRck,gptMessages);
-                    SseEmitter.SseEventBuilder message = SseEmitter.event().id(UUID.randomUUID().toString()).data(JsonUtil.writeValueAsString(newMessage)).name("message").reconnectTime(1000L);
+                    SseEmitter.SseEventBuilder message = SseEmitter.event().id(UUID.randomUUID().toString()).data(JsonUtil.writeValueAsString(sseGptMessage)).name("message").reconnectTime(1000L);
                     emitter.send(message);
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);

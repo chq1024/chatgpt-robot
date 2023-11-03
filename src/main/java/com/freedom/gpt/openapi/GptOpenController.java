@@ -28,9 +28,10 @@ public class GptOpenController {
         return gptService.connect(req.getCk(), req.getContent());
     }
 
-    @GetMapping("/chat/close")
-    public void chatClose(@RequestParam("ck") @Validated @NotEmpty String ck) {
+    @DeleteMapping("/chat")
+    public String chatClose(@RequestParam("ck") @Validated @NotEmpty String ck) {
         gptService.close(ck);
+        return "succ";
     }
 
     @GetMapping("/chat")
