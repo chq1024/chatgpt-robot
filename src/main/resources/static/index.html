@@ -6,11 +6,23 @@
     <title>Robot-Beikei</title>
     <script>
         function useChat(el) {
+            var elements = document.querySelectorAll('.chat-item-btn')
+            elements.forEach(function(element) {
+               element.classList.remove('btn-mouse-check')
+            });
+            el.classList.add('btn-mouse-check')
+            loadingElement.style.display = 'flex'
+            messagesElement.style.visibility = 'hidden'
             currMessage = messages.get(el.textContent)
             currChatCk = el.textContent
             let fragme = beautifulMessage(currMessage)
             clearMessageElement()
             messagesElement.appendChild(fragme)
+            setTimeout(()=>{
+                loadingElement.style.display = 'none'
+                messagesElement.style.visibility = 'visible'
+                goBottom()
+            },500)
         }
     </script>
 </head>
@@ -20,14 +32,20 @@
         <button class="content-newChat-btn" id="newChatBtn">new chat</button>
         <div class="curr-chats" id="chats"></div>
     </div>
-    <div class="content-message" id="contentMsg">
+    <div class="content-message">
         <div class="content-header">
             <h1>CHAT</h1>
         </div>
-        <div class="qa-content pre-line" id="messages"></div>
-        <div class="ur-input">
-            <embed src="/svg/question-person.svg" type="image/svg+xml"/>
-            <input placeholder="请输入" type="text" id="ic" oninput="autoResizeInput(this)"/>
+        <div class="content-body">
+            <div class="loading loading-ing" id="loading">
+                <embed src="svg/loading.svg" type="image/svg+xml"/>
+            </div>
+            <div class="qa-content pre-line" id="messages"></div>
+        </div>
+        <div class="content-bottom">
+            <div class="bottom-fixed" id="bottom">
+                <input placeholder="请输入,Enter键可发送" class="svg-icon" type="text" id="ic" oninput="autoResizeInput(this)"/>
+            </div>
         </div>
     </div>
 </div>
@@ -41,8 +59,8 @@
     const newChatBtnElement = document.getElementById('newChatBtn');
     const icInputElement = document.getElementById("ic");
     const messagesElement = document.getElementById("messages")
-    const contentMsgElement = document.getElementById("contentMsg")
     const chatsElement = document.getElementById("chats")
+    const loadingElement = document.getElementById("loading")
 
     // 渲染左边当前所有会话列表
     window.onload = async function () {
@@ -62,7 +80,7 @@
                 let msgItem = item[i]
                 let chatItem = document.createElement('div')
                 chatItem.classList.add('chat-item')
-                chatItem.innerHTML = `<button class=\"chat-item-btn\" onclick=\"useChat(this)\">${msgItem.ck}</button></span>`
+                chatItem.innerHTML = `<button class=\"chat-item-btn\" onclick=\"useChat(this)\" onmouseover=\"chatBtnMouseOver(this)\" onmouseout=\"chatBtnMouseOut(this)\">${msgItem.ck}</button><embed src=\"/svg/delete.svg\" class=\"chat-item-delete-btn\" type=\"image/svg+xml\"/></span>`
                 fragment.appendChild(chatItem)
                 messages.set(msgItem.ck,msgItem.content)
             }
@@ -96,7 +114,7 @@
         let fragment = beautifulMessage(msgArr);
         messagesElement.appendChild(fragment)
         currMessage.push(sseMsg)
-        contentMsgElement.scrollTop = contentMsgElement.scrollHeight
+        goBottom()
     })
     evenListen.addEventListener('error', (event) => {
         console.error('连接关闭：', event);
@@ -144,7 +162,7 @@
             }
             currMessage = item.content
             icInputElement.value = ''
-            contentMsgElement.scrollTop = contentMsgElement.scrollHeight
+            goBottom()
         } else {
             console.error('Error:', response.status);
         }
@@ -162,15 +180,17 @@
             let svg = 'robot.svg'
             const role = resp[i].role
             const content = resp[i].content
+            let template = `<embed src=\"/svg/${svg}\" type=\"image/svg+xml\"/><span>${content}</span>`
             if (role === 'user') {
                 position = 'message-item-float-left'
-                svg = 'question-person.svg'
+                svg = 'person.svg'
+                template = `<span>${content}</span><embed src=\"/svg/${svg}\" type=\"image/svg+xml\"/>`
             }
             const divElement = document.createElement('div');
             divElement.classList.add('message-item')
             divElement.classList.add(position)
             // divElement.innerHTML = `<div class=\"message-item ${position}\"><embed src=\"/svg/${svg}\" type=\"image/svg+xml\"/><span>${content}</span></div>`
-            divElement.innerHTML = `<embed src=\"/svg/${svg}\" type=\"image/svg+xml\"/><span>${content}</span>`
+            divElement.innerHTML = template
             fragment.appendChild(divElement)
         }
         return fragment
@@ -182,12 +202,24 @@
         }
     }
 
+    function chatBtnMouseOver(el) {
+        el.classList.add('btn-mouse-over')
+    }
+
+    function chatBtnMouseOut(el) {
+        el.classList.remove('btn-mouse-over')
+    }
+
 
     function isNeedForceFix(curr,resp) {
         if (curr.length + 1 === resp.length) {
             return false
         }
         return true
+    }
+
+    function goBottom() {
+        window.scrollTo(0, document.documentElement.scrollHeight-document.documentElement.clientHeight);
     }
     //-------------------------------内部方法--------------------------------------------
 </script>
@@ -201,7 +233,7 @@
         height: 100%
     }
     .pre-line {
-      white-space: pre-line;
+        white-space: pre-line;
     }
     .body-clazz {
         display: flex;
@@ -214,25 +246,16 @@
     }
     .main-content .content-history {
         width: 15%;
-        background-color: #414145FF
+        background-color: #414145FF;
+        position: fixed;
+        height: 100%;
     }
     .main-content .content-message {
         width: 85%;
-        max-height: 100vh;
         display: flex;
-        overflow-y: auto;
         flex-direction: column;
-    }
-    .main-content .content-message .qa-content {
-        display: flex;
-        flex: 1 0 auto;
-        align-items: flex-start;
-        flex-direction: column;
-    }
-    .main-content .content-message .ur-input {
-        display: flex;
-        padding-bottom: 10px;
-        flex: 0 0 auto;
+        align-items: center;
+        margin-left: 15%;
     }
     .main-content .content-message .content-header {
         width: 100%;
@@ -240,12 +263,48 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        flex: 0 0 auto;
+    }
+    .main-content .content-message .content-body {
+        display: flex;
+        flex-direction: column;
+        width: 75%;
+        flex: 1 0 auto;
+        align-items: center;
+        padding-top: 5px;
+    }
+    .main-content .content-message .content-bottom {
+        display: flex;
+        flex: 0 0 auto;
+        background-color: darkgray;
+        height: 100px;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+    }
+    .main-content .content-message .content-body .qa-content {
+        display: flex;
+        flex: 1 0 auto;
+        align-items: flex-start;
+        flex-direction: column;
     }
     #ic {
+        min-width: 75%;
+        height: 60%;
         border: none;
-        outline: none;
-        min-width: 200px;
         box-sizing: border-box;
+        background-color: #e3dfdfa1;
+        border-radius: 5px;
+        padding: 5px;
+        outline: none;
+        font-size: 15px;
+    }
+    .svg-icon{
+        background-image: url('svg/person.svg');
+        background-size: 48px 48px; /* 调整SVG图像的大小 */
+        background-position: right center; /* 控制SVG图像的位置 */
+        background-repeat: no-repeat; /* 防止SVG图像重复 */
+        padding-right: 20px; /* 确保SVG图像不被文本覆盖 */
     }
     .main-content .content-history .content-newChat-btn {
         width: 100%;
@@ -277,14 +336,49 @@
         width: 100%;
         min-height: 50px;
         display: flex;
-        justify-content: center;
+        justify-content: space-around;
     }
     .curr-chats .chat-item-btn {
-        width: 100%;
+        width: 88%;
         overflow-x: hidden;
-        color: #d19d9d;
-        border: 0;
+        color: #d7b3b3;
         background-color: #414145FF;
+        border: 0;
+    }
+    .curr-chats .chat-item-delete-btn {
+        width: 16px;
+    }
+    .chat-item .btn-mouse-over {
+        background-color: #1212149e;
+    }
+
+    .chat-item .btn-mouse-check {
+        background-color: #1212149e;
+    }
+
+    .content-bottom .bottom-fixed {
+        min-width: 85%;
+        height: 100px;
+        bottom: 0;
+        z-index: 1;
+        position: fixed;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(rgba(255,255,255, 1), rgba(169,169,169, 1));
+    }
+    .loading{
+        display: none;
+        justify-content: center;
+        align-items: center;
+        animation: spin 1s linear infinite;
+        width: 40px;
+        height: 40px;
+        margin-top: 20%;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
 </style>
 </body>
