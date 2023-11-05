@@ -13,10 +13,11 @@
             el.classList.add('btn-mouse-check')
             loadingElement.style.display = 'flex'
             messagesElement.style.visibility = 'hidden'
-            currMessage = messages.get(el.textContent)
+            // 值复制
+            currMessage = JSON.parse(JSON.stringify(messages.get(el.textContent)))
             currChatCk = el.textContent
-            let fragme = beautifulMessage(currMessage)
             clearMessageElement()
+            let fragme = beautifulMessage(currMessage)
             messagesElement.appendChild(fragme)
             setTimeout(()=>{
                 loadingElement.style.display = 'none'
@@ -101,9 +102,36 @@
 
     icInputElement.addEventListener("keyup", (event) => {
         if (event.key === "Enter") {
+            if(currChatCk.trim() === "") {
+                send(true)
+                return
+            }
             send(false)
+
         }
     })
+    // 删除对话
+    async function deleteChatItem(ck) {
+        const response = await fetch('/api/chat?ck=' + ck, {
+            method: 'DELETE',
+            headers: {
+                'Accept': '*/*',
+                'Content-Type': 'application/json',
+            },
+            referrerPolicy: 'no-referrer',
+        });
+        console.log(response)
+        if (response.ok) {
+            const text = await response.text();
+            if (text === "succ") {
+                messages.delete(ck)
+                let element = document.getElementById(ck);
+                element.remove()
+            }
+        } else {
+            console.error('Error:', response.status);
+        }
+    }
     //-------------------------------按钮事件------------------------------------------
 
     //-------------------------------监听sse api----------------------------------------
@@ -115,7 +143,7 @@
             msgArr.push(sseMsg)
             let fragment = beautifulMessage(msgArr);
             messagesElement.appendChild(fragment)
-            currMessage.push(sseMsg)
+            currMessage.push({"role":sseMsg.role,"content":sseMsg.content})
         }
         messages.get(sseMsg.ck).push({"role":sseMsg.role,"content":sseMsg.content})
         goBottom()
@@ -127,6 +155,7 @@
 
     //-------------------------------内部方法--------------------------------------------
     async function send(isNew) {
+
         // 空值无法发送
         let sendMessage = icInputElement.value;
         if (!isNew && sendMessage.trim() === "") {
@@ -174,18 +203,13 @@
                 const fragment = beautifulMessage(userCurrMsg);
                 messagesElement.appendChild(fragment)
             }
-            currMessage = item.content
             icInputElement.value = ''
             messages.set(currChatCk,item.content)
+            currMessage = JSON.parse(JSON.stringify(item.content))
             goBottom()
         } else {
             console.error('Error:', response.status);
         }
-    }
-
-    function autoResizeInput(input) {
-        // 使用输入内容的长度来设置宽度
-        input.style.width = input.value.length + "ch";
     }
 
     function beautifulMessage(resp) {
@@ -225,7 +249,6 @@
         el.classList.remove('btn-mouse-over')
     }
 
-
     function isNeedForceFix(curr,resp) {
         if (curr.length + 1 === resp.length) {
             return false
@@ -236,27 +259,12 @@
     function goBottom() {
         window.scrollTo(0, document.documentElement.scrollHeight-document.documentElement.clientHeight);
     }
-    async function deleteChatItem(ck) {
-        const response = await fetch('/api/chat?ck=' + ck, {
-            method: 'DELETE',
-            headers: {
-                'Accept': '*/*',
-                'Content-Type': 'application/json',
-            },
-            referrerPolicy: 'no-referrer',
-        });
-        console.log(response)
-        if (response.ok) {
-            const text = await response.text();
-            if (text === "succ") {
-                messages.delete(ck)
-                let element = document.getElementById(ck);
-                element.remove()
-            }
-        } else {
-            console.error('Error:', response.status);
-        }
+
+    function autoResizeInput(input) {
+        // 使用输入内容的长度来设置宽度
+        input.style.width = input.value.length + "ch";
     }
+
     //-------------------------------内部方法--------------------------------------------
 </script>
 <style>
