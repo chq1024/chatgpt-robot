@@ -1,13 +1,12 @@
 package com.freedom.gpt.openapi;
 
-import com.freedom.gpt.entity.GptMessage;
+import com.freedom.gpt.entity.GptMessagesBody;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * @author bk
@@ -18,5 +17,5 @@ import java.util.List;
 @Builder
 public class ChatResponse implements Serializable {
     private String ck;
-    private List<GptMessage> content;
+    private GptMessagesBody content;
 }
