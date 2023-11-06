@@ -191,7 +191,7 @@
                 chatItem.setAttribute("id",item.ck)
                 chatItem.innerHTML = `<button class=\"chat-item-btn\" onclick=\"useChat(this)\" onmouseover=\"chatBtnMouseOver(this)\" onmouseout=\"chatBtnMouseOut(this)\">${item.ck}</button><div class=\"chat-item-delete-btn\" onclick=\"deleteChatItem('${item.ck}')\"><embed src=\"/svg/delete.svg\" class=\"chat-item-delete-embed\" type=\"image/svg+xml\"/></div>`
                 fragment.appendChild(chatItem)
-                chatsElement.appendChild(fragment)
+                chatsElement.insertBefore(fragment,chatsElement.childNodes[0])
             }
             const forceFix = isNeedForceFix(currMessage,item.content)
             // 强制修复,保持前后数据一致性(强制修复会出现页面抖动)

@@ -2,6 +2,7 @@ package com.freedom.gpt.config;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.freedom.gpt.properties.ProxyProperties;
 import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +11,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
@@ -27,11 +27,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class IocBeanConfiguration {
 
     @Bean("okHttpTemplate")
-    @Autowired
     @DependsOn("okHttp3Factory")
+    @Autowired
     public RestTemplate restTemplate(@Qualifier("okHttp3Factory") OkHttp3ClientHttpRequestFactory okHttp3Factory) {
-        RestTemplate restTemplate = new RestTemplate(okHttp3Factory);
-        return restTemplate;
+        return new RestTemplate(okHttp3Factory);
     }
 
     @Bean(name = "okHttpClint")
@@ -54,6 +53,7 @@ public class IocBeanConfiguration {
     public ObjectMapper objectMapper() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
         objectMapper.setDateFormat(dateFormat);
         return objectMapper;

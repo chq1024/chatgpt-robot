@@ -7,13 +7,16 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.LinkedList;
 
+/**
+ * @author bk
+ */
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class GptMessagesBody implements Serializable {
+@AllArgsConstructor
+public class GptMessages implements Serializable {
     private LocalDateTime chatTime;
-    private List<GptMessage> messages;
+    private LinkedList<GptMessage> messages;
 }

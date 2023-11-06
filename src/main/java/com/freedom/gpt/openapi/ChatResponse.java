@@ -1,12 +1,14 @@
 package com.freedom.gpt.openapi;
 
-import com.freedom.gpt.entity.GptMessagesBody;
+import com.freedom.gpt.entity.GptMessage;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.LinkedList;
 
 /**
  * @author bk
@@ -17,5 +19,6 @@ import java.io.Serializable;
 @Builder
 public class ChatResponse implements Serializable {
     private String ck;
-    private GptMessagesBody content;
+    private LinkedList<GptMessage> content;
+    private LocalDateTime chatTime;
 }

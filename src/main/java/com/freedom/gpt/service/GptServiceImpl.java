@@ -1,14 +1,13 @@
 package com.freedom.gpt.service;
 
+import com.freedom.gpt.config.SseMessageCustomer;
 import com.freedom.gpt.entity.GptMessage;
-import com.freedom.gpt.entity.GptMessagesBody;
+import com.freedom.gpt.entity.GptMessages;
 import com.freedom.gpt.entity.GptResponse;
 import com.freedom.gpt.entity.SseGptMessage;
 import com.freedom.gpt.openapi.ChatResponse;
 import com.freedom.gpt.utils.GptUtil;
 import com.freedom.gpt.utils.JsonUtil;
-import com.freedom.gpt.utils.SseUtil;
-import com.freedom.gpt.utils.SseUtilOne;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,11 +16,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,27 +39,30 @@ public class GptServiceImpl implements GptService {
     @Qualifier("gptThreadTaskExecutor")
     private ThreadPoolTaskExecutor taskExecutor;
 
+    @Autowired
+    private SseMessageCustomer messageCustomer;
+
     @Value("${gpt.uri}")
     private String gptUri;
 
-    private final ConcurrentHashMap<String, GptMessagesBody> messageMap = new ConcurrentHashMap<>(16);
+    private final ConcurrentHashMap<String, GptMessages> messageMap = new ConcurrentHashMap<>(16);
 
     @Override
     @SuppressWarnings({"all"})
     public ChatResponse connect(String ck,String content) {
         boolean exit = messageMap.containsKey(ck);
-        GptMessagesBody gptMessages;
+        GptMessages gptMessages;
         String rck = new String(ck);
         if (StringUtils.hasText(rck) && exit) {
             gptMessages =  messageMap.get(rck);
-            gptMessages.getMessages().add(GptMessage.builder().role("user").content(content).build());
+            gptMessages.getMessages().addLast(GptMessage.builder().role("user").content(content).build());
         } else {
             // 新建会话返回初始原文和新CK
             gptMessages = GptUtil.INSTANCE().newContent();
             rck = GptUtil.INSTANCE().genderContentKey();
             if (!StringUtils.hasText(content)) {
                 messageMap.put(rck,gptMessages);
-                return ChatResponse.builder().ck(rck).content(gptMessages).build();
+                return ChatResponse.builder().ck(rck).content(gptMessages.getMessages()).chatTime(gptMessages.getChatTime()).build();
             }
             gptMessages.getMessages().add(GptMessage.builder().role("user").content(content).build());
             messageMap.put(rck,gptMessages);
@@ -95,14 +95,13 @@ public class GptServiceImpl implements GptService {
             String finalRck = rck;
             hashMapCompletableFuture.whenComplete((k, e)->{
                 try {
-                    SseEmitter emitter = SseUtilOne.INSTANCE();
                     GptMessage newMessage = k.getChoices().get(0).getMessage();
                     // 将newMessage加入本次历史会话
-                    SseGptMessage sseGptMessage = SseGptMessage.builder().ck(finalRck).role(newMessage.getRole()).content(newMessage.getContent()).build();
                     gptMessages.getMessages().add(newMessage);
                     messageMap.put(finalRck,gptMessages);
-                    SseEmitter.SseEventBuilder message = SseEmitter.event().id(UUID.randomUUID().toString()).data(JsonUtil.writeValueAsString(sseGptMessage)).name("message").reconnectTime(1000L);
-                    emitter.send(message);
+                    // 发送至队列
+                    SseGptMessage sseGptMessage = SseGptMessage.builder().ck(finalRck).role(newMessage.getRole()).content(newMessage.getContent()).build();
+                    messageCustomer.getQueue().put(sseGptMessage);
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);
                 }
@@ -130,7 +129,7 @@ public class GptServiceImpl implements GptService {
             throw new RuntimeException("gpt request error!!!");
         }
 //        messageMap.put(rck,gptMessages);
-        return ChatResponse.builder().ck(rck).content(gptMessages).build();
+        return ChatResponse.builder().ck(rck).content(gptMessages.getMessages()).chatTime(gptMessages.getChatTime()).build();
     }
 
     @Override
@@ -142,7 +141,7 @@ public class GptServiceImpl implements GptService {
     public List<ChatResponse> chats() {
         return messageMap.entrySet().stream()
                 .sorted(Comparator.comparing(e->e.getValue().getChatTime(),Comparator.reverseOrder()))
-                .map(r-> ChatResponse.builder().ck(r.getKey()).content(r.getValue()).build())
+                .map(r-> ChatResponse.builder().ck(r.getKey()).content(r.getValue().getMessages()).chatTime(r.getValue().getChatTime()).build())
                 .collect(Collectors.toList());
     }
 }
