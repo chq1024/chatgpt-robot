@@ -99,25 +99,33 @@
         clearMessageElement()
         await send(true)
         // 切换标记关注点
-        var elements = document.querySelectorAll('.chat-item')
+        const elements = document.querySelectorAll('.chat-item')
         elements.forEach(function (element) {
             element.classList.remove('btn-mouse-check')
         });
         document.getElementById(currChatCk).classList.add("btn-mouse-check")
     });
 
-    icInputElement.addEventListener("keyup", (event) => {
+    icInputElement.addEventListener("keyup", async (event) => {
         if (event.key === "Enter") {
-            if(currChatCk.trim() === "") {
-                send(true)
+            if (currChatCk.trim() === "") {
+                await send(true)
+                // 切换标记关注点
+                const elements = document.querySelectorAll('.chat-item')
+                elements.forEach(function (element) {
+                    element.classList.remove('btn-mouse-check')
+                });
+                document.getElementById(currChatCk).classList.add("btn-mouse-check")
                 return
             }
-            send(false)
-
+            await send(false)
         }
     })
     // 删除对话
     async function deleteChatItem(ck) {
+        currMessage = []
+        currChatCk = ''
+        clearMessageElement()
         const response = await fetch('/api/chat?ck=' + ck, {
             method: 'DELETE',
             headers: {
