@@ -39,7 +39,7 @@
         </div>
         <div class="content-body">
             <div class="loading loading-ing" id="loading">
-                <embed src="svg/loading.svg" type="image/svg+xml"/>
+                <embed src="image/loading.svg" type="image/svg+xml"/>
             </div>
             <div class="qa-content pre-line" id="messages"></div>
         </div>
@@ -82,7 +82,7 @@
                 let chatItem = document.createElement('div')
                 chatItem.classList.add('chat-item')
                 chatItem.setAttribute("id",msgItem.ck)
-                chatItem.innerHTML = `<button class=\"chat-item-btn\" onclick=\"useChat(this)\" onmouseover=\"chatBtnMouseOver(this)\" onmouseout=\"chatBtnMouseOut(this)\">${msgItem.ck}</button><button class=\"chat-item-delete-btn\" onclick=\"deleteChatItem('${msgItem.ck}')\"><embed src=\"/svg/delete.svg\" class=\"chat-item-delete-embed\" type=\"image/svg+xml\"/></button>`
+                chatItem.innerHTML = `<button class=\"chat-item-btn\" onclick=\"useChat(this)\" onmouseover=\"chatBtnMouseOver(this)\" onmouseout=\"chatBtnMouseOut(this)\">${msgItem.ck}</button><button class=\"chat-item-delete-btn\" onclick=\"deleteChatItem('${msgItem.ck}')\"><embed src=\"image/delete.svg\" class=\"chat-item-delete-embed\" type=\"image/svg+xml\"/></button>`
                 fragment.appendChild(chatItem)
                 messages.set(msgItem.ck,msgItem.content)
             }
@@ -194,7 +194,7 @@
                 let chatItem = document.createElement('div')
                 chatItem.classList.add('chat-item')
                 chatItem.setAttribute("id",item.ck)
-                chatItem.innerHTML = `<button class=\"chat-item-btn\" onclick=\"useChat(this)\" onmouseover=\"chatBtnMouseOver(this)\" onmouseout=\"chatBtnMouseOut(this)\">${item.ck}</button><button class=\"chat-item-delete-btn\" onclick=\"deleteChatItem('${item.ck}')\"><embed src=\"/svg/delete.svg\" class=\"chat-item-delete-embed\" type=\"image/svg+xml\"/></button>`
+                chatItem.innerHTML = `<button class=\"chat-item-btn\" onclick=\"useChat(this)\" onmouseover=\"chatBtnMouseOver(this)\" onmouseout=\"chatBtnMouseOut(this)\">${item.ck}</button><button class=\"chat-item-delete-btn\" onclick=\"deleteChatItem('${item.ck}')\"><embed src=\"image/delete.svg\" class=\"chat-item-delete-embed\" type=\"image/svg+xml\"/></button>`
                 fragment.appendChild(chatItem)
                 chatsElement.insertBefore(fragment,chatsElement.childNodes[0])
             }
@@ -224,11 +224,11 @@
             let svg = 'robot.svg'
             const role = resp[i].role
             const content = resp[i].content
-            let template = `<embed src=\"/svg/${svg}\" type=\"image/svg+xml\"/><span>${content}</span>`
+            let template = `<embed src=\"image/${svg}\" type=\"image/svg+xml\"/><span>${content}</span>`
             if (role === 'user') {
                 position = 'message-item-float-left'
                 svg = 'person.svg'
-                template = `<span>${content}</span><embed src=\"/svg/${svg}\" type=\"image/svg+xml\"/>`
+                template = `<span>${content}</span><embed src=\"image/${svg}\" type=\"image/svg+xml\"/>`
             }
             const divElement = document.createElement('div');
             divElement.classList.add('message-item')
@@ -325,7 +325,7 @@
     .main-content .content-message .content-bottom {
         display: flex;
         flex: 0 0 auto;
-        background-color: darkgray;
+        background-color: #ffffff29;
         height: 100px;
         width: 100%;
         justify-content: center;
@@ -342,14 +342,14 @@
         height: 60%;
         border: none;
         box-sizing: border-box;
-        background-color: #e3dfdfa1;
+        background-color: #ffffff;
         border-radius: 5px;
         padding: 5px;
         outline: none;
         font-size: 15px;
     }
     .svg-icon{
-        background-image: url('svg/person.svg');
+        background-image: url('image/person.svg');
         background-size: 48px 48px; /* 调整SVG图像的大小 */
         background-position: right center; /* 控制SVG图像的位置 */
         background-repeat: no-repeat; /* 防止SVG图像重复 */
@@ -391,7 +391,7 @@
     .curr-chats .chat-item-btn {
         width: 100%;
         overflow-x: hidden;
-        color: #d7b3b3;
+        color: #dfdede;
         /*background-color: #414145FF;*/
         border: 0;
         display: flex;
@@ -423,7 +423,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background: linear-gradient(rgba(255,255,255, 1), rgba(169,169,169, 1));
+        background: linear-gradient(rgb(255 255 255 / 54%), rgb(37 33 33 / 45%));;
     }
     .loading{
         display: none;

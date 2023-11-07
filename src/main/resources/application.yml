@@ -8,6 +8,9 @@ spring:
   mvc:
     async:
       request-timeout: -1
+  web:
+    resources:
+      static-locations: classpath:/static/
 
 
 gpt:
