@@ -6,11 +6,11 @@
     <title>Robot-Beikei</title>
     <script>
         function useChat(el) {
-            var elements = document.querySelectorAll('.chat-item-btn')
+            const elements = document.querySelectorAll('.chat-item');
             elements.forEach(function(element) {
-               element.classList.remove('btn-mouse-check')
+                element.classList.remove('btn-mouse-check')
             });
-            el.classList.add('btn-mouse-check')
+            el.parentElement.classList.add('btn-mouse-check')
             loadingElement.style.display = 'flex'
             messagesElement.style.visibility = 'hidden'
             // 值复制
@@ -82,7 +82,7 @@
                 let chatItem = document.createElement('div')
                 chatItem.classList.add('chat-item')
                 chatItem.setAttribute("id",msgItem.ck)
-                chatItem.innerHTML = `<button class=\"chat-item-btn\" onclick=\"useChat(this)\" onmouseover=\"chatBtnMouseOver(this)\" onmouseout=\"chatBtnMouseOut(this)\">${msgItem.ck}</button><div class=\"chat-item-delete-btn\" onclick=\"deleteChatItem('${msgItem.ck}')\"><embed src=\"/svg/delete.svg\" class=\"chat-item-delete-embed\" type=\"image/svg+xml\"/></div>`
+                chatItem.innerHTML = `<button class=\"chat-item-btn\" onclick=\"useChat(this)\" onmouseover=\"chatBtnMouseOver(this)\" onmouseout=\"chatBtnMouseOut(this)\">${msgItem.ck}</button><button class=\"chat-item-delete-btn\" onclick=\"deleteChatItem('${msgItem.ck}')\"><embed src=\"/svg/delete.svg\" class=\"chat-item-delete-embed\" type=\"image/svg+xml\"/></button>`
                 fragment.appendChild(chatItem)
                 messages.set(msgItem.ck,msgItem.content)
             }
@@ -93,11 +93,17 @@
     }
 
     //-------------------------------按钮事件------------------------------------------
-    newChatBtnElement.addEventListener('click', () => {
+    newChatBtnElement.addEventListener('click', async () => {
         currChatCk = ""
         currMessage = []
         clearMessageElement()
-        send(true)
+        await send(true)
+        // 切换标记关注点
+        var elements = document.querySelectorAll('.chat-item')
+        elements.forEach(function (element) {
+            element.classList.remove('btn-mouse-check')
+        });
+        document.getElementById(currChatCk).classList.add("btn-mouse-check")
     });
 
     icInputElement.addEventListener("keyup", (event) => {
@@ -120,7 +126,6 @@
             },
             referrerPolicy: 'no-referrer',
         });
-        console.log(response)
         if (response.ok) {
             const text = await response.text();
             if (text === "succ") {
@@ -189,7 +194,7 @@
                 let chatItem = document.createElement('div')
                 chatItem.classList.add('chat-item')
                 chatItem.setAttribute("id",item.ck)
-                chatItem.innerHTML = `<button class=\"chat-item-btn\" onclick=\"useChat(this)\" onmouseover=\"chatBtnMouseOver(this)\" onmouseout=\"chatBtnMouseOut(this)\">${item.ck}</button><div class=\"chat-item-delete-btn\" onclick=\"deleteChatItem('${item.ck}')\"><embed src=\"/svg/delete.svg\" class=\"chat-item-delete-embed\" type=\"image/svg+xml\"/></div>`
+                chatItem.innerHTML = `<button class=\"chat-item-btn\" onclick=\"useChat(this)\" onmouseover=\"chatBtnMouseOver(this)\" onmouseout=\"chatBtnMouseOut(this)\">${item.ck}</button><button class=\"chat-item-delete-btn\" onclick=\"deleteChatItem('${item.ck}')\"><embed src=\"/svg/delete.svg\" class=\"chat-item-delete-embed\" type=\"image/svg+xml\"/></button>`
                 fragment.appendChild(chatItem)
                 chatsElement.insertBefore(fragment,chatsElement.childNodes[0])
             }
@@ -242,11 +247,11 @@
     }
 
     function chatBtnMouseOver(el) {
-        el.classList.add('btn-mouse-over')
+        el.parentElement.classList.add('btn-mouse-over')
     }
 
     function chatBtnMouseOut(el) {
-        el.classList.remove('btn-mouse-over')
+        el.parentElement.classList.remove('btn-mouse-over')
     }
 
     function isNeedForceFix(curr,resp) {
@@ -375,9 +380,10 @@
         flex-direction: column;
         color: #ffd1d1;
         align-items: flex-start;
+        background: linear-gradient(to right, #d1d1dd3b, #4f4c4c);
     }
     .curr-chats .chat-item {
-        width: 97%;
+        width: 100%;
         min-height: 50px;
         display: flex;
         justify-content: space-between;
@@ -386,22 +392,25 @@
         width: 100%;
         overflow-x: hidden;
         color: #d7b3b3;
-        background-color: #414145FF;
+        /*background-color: #414145FF;*/
         border: 0;
         display: flex;
         justify-content: flex-start;
         align-items: center;
+        background-color: transparent;
     }
     .curr-chats .chat-item-delete-btn {
         display: flex;
         align-items: center;
         width: 16px;
+        background-color: transparent;
+        border: 0;
     }
-    .chat-item .btn-mouse-over {
+    .btn-mouse-over {
         background-color: #1212149e;
     }
 
-    .chat-item .btn-mouse-check {
+    .btn-mouse-check {
         background-color: #1212149e;
     }
 
